@@ -1,0 +1,428 @@
+---
+title: "Project 2"
+author: "Chris Bui, Ilham Tokhi, Air Singh"
+output: pdf_document
+---
+
+```{r, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(
+	error = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	echo = FALSE, # hide all R codes!!
+	fig.width=5, fig.height=4,#set figure size
+	fig.align='center',#center plot
+	options(knitr.kable.NA = ''), #do not print NA in knitr table
+	tidy = FALSE #add line breaks in R codes
+)
+
+```
+
+# Introduction
+
+The main objective of this project is to cover the topics listed above and create a user-friendly explanation of our results. The main tools we have used in this project is R-Studio. Here we complied our computations and listed them as shown below. In this project, we will utilize the multiple linear regression in both Parts I and II. In Part I, we use the CDI dataset that gives us 2 models examining multiple factors such as land, area, total population, etc. We create stem-and-leaf plots for each of the predictor variables, create scatter plot matrix and correlation matrix for both models, fit the first-order regression model, calculate R squared, obtain the residuals, and prepare a normal probability plot for the two fitted models. Lastly, we expand both of our models by adding all possible two-factor interactions. For our Part II in Project 2, we look out problem 7.37 in the book. We utilize the same dataset, CDI. We assume that a first-order multiple regression model is appropriate. For the given variables, we calculate the coefficient of partial determination given that $X_1$ and $X_2$ are included in the model: land area ($X_3$), percent of population 65 or older ($X_4$), and number of hospital beds ($X_5$). Then, using the results we obtained, we find the best predictor variable and see if the extra sum of squares associated with the variable is larger than the other three variables. Next, we use the F* test statistic to test whether or not the variable determined to be best in in the previous part is helpful in the regression model when $X_1$ and $X_2$ are included in the model. We record the alternatives, decision rule, and conclusion. We then see if the F* test statistics for the other three potential predictor variables would be as large as the one we found. Finally, we compute the three additional coefficients of partial determination and find which pair of predictors is more important than the other pairs. We use the F test again to see if adding the best pair is of any significance, since we already have $X_1$ and $X_2$ apart of the model already. In our Part III, we examine our results based on a practical view. We apply relevant course material to this project and create hypothesis' on improving linear regression models.
+
+
+# Part I: Multiple Linear Regression I
+
+## Project 6.28
+
+Evaluate two alternative models for predicting the number of active physicians($Y$) in a CDI. Model I includes as predictor variables total population($X_1$), land area($X_2$), and total personal income($X_3$). Model II includes as predictor variables population density($X_1$), percent of population greater than 64($X_2$), and total personal income($X_3$).
+
+(a) Prepare a stem-and-leaf plot for each predictor variable. What noteworthy information is provided in the plots?
+
+```{r, results="hide"}
+#use results="hide" to hide the unimportant output.
+
+#import data
+
+CDI = read.table("/Users/ankitasingh/Documents/STA-108-projects/CDI.txt")
+
+```
+
+Stem-and-leaf plot for total population.
+```{r}
+stem(CDI$V5) #total population
+
+```
+
+Stem-and-leaf plot for land area.
+```{r}
+stem(CDI$V4) #land area
+
+```
+
+Stem-and-leaf plot for total personal income.
+```{r}
+stem(CDI$V16) #total personal income
+
+```
+
+Stem-and-leaf plot for total percent of population 65 or older.
+```{r}
+stem(CDI$V7) #total percent of population 65 or older
+
+```
+
+Stem-and-leaf plot for population density.
+```{r}
+CDI$V18 = (CDI$V5)/(CDI$V4)
+stem(CDI$V18) #total population divided by land area
+
+```
+
+These plots make it easy to see where outliers exist.
+
+(b) Obtain the scatter plot matrix and correlation matrix for each proposed model. Summarize the information provided.
+
+### Scatterplot Matrix
+
+Scatterplot Matrix for Model 1
+```{r}
+cdi1 = subset(CDI, select = c(8, 5, 4, 16))
+colnames(cdi1) = c("y","x1","x2","x3")
+pairs(cdi1)
+
+```
+For model 1, we see when looking at the first square in the first column—where y is on the x-axis and x1 is on the y-axis—we can see a strong correlation between the two variables. 
+ 
+Scatterplot Matrix for Model 2
+```{r}
+cdi2 = subset(CDI, select = c(8, 18, 7, 16))
+colnames(cdi2) = c("y","x1","x2","x3")
+pairs(cdi2)
+
+```
+For model 2 in the Scatter Plot Matrix, we see when looking at the first square in the first column—where y is on the x-axis and x1 is on the y-axis—we can see a weal correlation between the two variables. This scatter plot is replicated for instance with the plot in the top row, first plot. 
+
+### Correlation Matrix
+
+Correlation Matrix for Model 1
+```{r}
+cor(cdi1)
+
+```
+Here we see a perfect negative linear relationship (because it's a 1.0 diagonally).
+
+Correlation Matrix for Model 2
+```{r}
+cor(cdi2)
+
+```
+Here we see a perfect negative linear relationship
+
+(c) For each proposed model, fit the first-order regression model with three predictor variables.
+
+### Model 1
+```{r}
+fit1 = lm(y~x1+x2+x3, data = cdi1)
+beta1=fit1$coefficients
+beta1
+
+```
+
+### Model 2
+```{r}
+fit2 = lm(y~x1+x2+x3, data = cdi2)
+beta2=fit2$coefficients
+beta2
+
+```
+
+(d) Calculate $R^2$ for each model. Is one model clearly preferable in terms of this measure?
+
+### Model 1
+```{r, results="hide"}
+summary(fit1)$r.squared
+
+```
+
+$R^2$ for Model 1 is 0.9026432.
+
+### Model 2
+```{r, results="hide"}
+summary(fit2)$r.squared
+
+```
+
+$R^2$ for Model 2 is 0.9117491.
+
+Both models are good fits, one is not clearly preferable compared to the other since they are both preferable.
+
+(e) For each model, get the residuals and plot them against $\hat{Y}$, each of the three predictor variables, and each of the two-factor interaction terms. Also prepare a normal probability plot for each of the two fitted models. Interpret your plots and state your findings. Is one model clearly preferable in terms of being appropriate? 
+
+### Model 1
+
+Normal Probability Plot
+```{r}
+fit1 = lm(y~x1+x2+x3, data = cdi1)
+residuals = fit1$residuals
+qqnorm(residuals)
+qqline(residuals, col='red')
+
+```
+
+$\hat{Y}$ Against $X_1$
+```{r}
+fit1x1 = lm(y~x1, data = cdi1)
+residuals = fit1x1$residuals
+y_hat = fit1x1$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_2$
+```{r}
+fit1x2 = lm(y~x2, data = cdi1)
+residuals = fit1x2$residuals
+y_hat = fit1x2$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_3$
+```{r}
+fit1x3 = lm(y~x3, data = cdi1)
+residuals = fit1x3$residuals
+y_hat = fit1x3$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_1X_2$
+```{r}
+fit1x1x2 = lm(y~x1*x2, data = cdi1)
+residuals = fit1x1x2$residuals
+y_hat = fit1x1x2$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_1X_3$
+```{r}
+fit1x1x3 = lm(y~x1*x3, data = cdi1)
+residuals = fit1x1x3$residuals
+y_hat = fit1x1x3$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_2X_3$
+```{r}
+fit1x2x3 = lm(y~x2*x3, data = cdi1)
+residuals = fit1x2x3$residuals
+y_hat = fit1x2x3$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+### Model 2
+
+Normal Probability Plot
+```{r}
+fit2 = lm(y~x1+x2+x3, data = cdi2)
+residuals = fit2$residuals
+qqnorm(residuals)
+qqline(residuals, col='red')
+
+```
+
+$\hat{Y}$ Against $X_1$
+```{r}
+fit2x1 = lm(y~x1, data = cdi2)
+residuals = fit2x1$residuals
+y_hat = fit2x1$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_2$
+```{r}
+fit2x2 = lm(y~x2, data = cdi2)
+residuals = fit2x2$residuals
+y_hat = fit2x2$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_3$
+```{r}
+fit2x3 = lm(y~x3, data = cdi2)
+residuals = fit2x3$residuals
+y_hat = fit2x3$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_1X_2$
+```{r}
+fit2x1x2 = lm(y~x1*x2, data = cdi2)
+residuals = fit2x1x2$residuals
+y_hat = fit2x1x2$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_1X_3$
+```{r}
+fit2x1x3 = lm(y~x1*x3, data = cdi2)
+residuals = fit2x1x3$residuals
+y_hat = fit2x1x3$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+$\hat{Y}$ Against $X_2X_3$
+```{r}
+fit2x2x3 = lm(y~x2*x3, data = cdi2)
+residuals = fit2x2x3$residuals
+y_hat = fit2x2x3$fitted.values
+plot(x=y_hat, y=residuals, xlab='fitted values', ylab='residuals')
+abline(h=0, col='red')
+
+```
+
+Our plots appear to be normal and both models appear to be similar.
+
+(f) Now expand both models by adding all possible two-factor interactions($X_1X_2$, $X_1X_3$, $X_2X_3$). Repeat part d for the two expanded models.
+
+### Model 1
+```{r, results="hide"}
+fit1inter = lm((y~(x1)+(x2)+(x3)+(x1*x2)+(x1*x3)+(x2*x3)), data = cdi1)
+summary(fit1inter)$r.squared
+
+```
+
+$R^2$ for Model 1 with interactions is 0.9063789.
+
+### Model 2
+```{r, results="hide"}
+fit2inter = lm((y~(x1)+(x2)+(x3)+(x1*x2)+(x1*x3)+(x2*x3)), data = cdi2)
+summary(fit2inter)$r.squared
+
+```
+
+$R^2$ for Model 2 with interactions is 0.9230238.
+
+# Part II: Multiple Linear Regression II
+
+```{r, results="hide"}
+# PART 1
+Data = `CDI`
+#X1 (Total population)
+X1 = Data$V5
+#X2 (Total personal income)
+X2 = Data$V16
+#X3 (land area)
+X3 = Data$V4
+#X4 (percent of population 65 or older)
+X4 = Data$V7
+#X5 (number of hospital beds)
+X5 = Data$V9
+Y = Data$V8
+n = length(Y)
+fit12 = lm(Y~X1+X2)
+fit123 = lm(Y~X1+X2+X3)
+fit124 = lm(Y~X1+X2+X4)
+fit125 = lm(Y~X1+X2+X5)
+SSE12 = anova(fit12)[3,2]
+SSE123 = anova(fit123)[4,2]
+SSE124 = anova(fit124)[4,2]
+SSE125 = anova(fit125)[4,2]
+#CPD = coefficient of partial determination
+CPD3 = (SSE12-SSE123)/SSE12
+CPD4 = (SSE12-SSE124)/SSE12
+CPD5 = (SSE12-SSE125)/SSE12
+CPD3
+CPD4
+CPD5
+#PART B
+SSE12-SSE123
+SSE12-SSE124
+SSE12-SSE125
+#PART C
+anova(fit125)
+qf(.99,1,436)
+p = 4
+Fstar5 = (SSE12-SSE125)/(SSE125/(n-p))
+Fstar5
+Fstar3 = (SSE12-SSE123)/(SSE123/(n-p))
+Fstar3
+Fstar4 = (SSE12-SSE124)/(SSE124/(n-p))
+Fstar4
+#PART D
+fit1234 = lm(Y~X1+X2+X3+X4)
+fit1235 = lm(Y~X1+X2+X3+X5)
+fit1245 = lm(Y~X1+X2+X4+X5)
+SSE1234 = anova(fit1234)[5,2]
+SSE1235 = anova(fit1235)[5,2]
+SSE1245 = anova(fit1245)[5,2]
+CPD34 = (SSE12-SSE1234)/SSE12
+CPD35 = (SSE12-SSE1235)/SSE12
+CPD45 = (SSE12-SSE1245)/SSE12
+CPD34
+CPD35
+CPD45
+anova(fit1245)
+qf(.95,1,435)
+qf(.99,1,435)
+p2 = 5
+Fstar45 = ((SSE12-SSE1245)/(p2-1))/(SSE1245/(n-p2))
+Fstar45
+```
+
+## Project 7.37
+
+For predicting the number of active physicians($Y$) in a county, it has been decided to include total population($X_1$) and total personal income($X_2$) as predictor variables. The question now is whether an additional predictor variable would be helpful in the model and, if so, which variable would be most helpful. Assume that a first-order multiple regression model is appropriate.
+
+Take out variable $X_6$. We will not consider total serious crime as a predictor.
+
+(a) For each of the following variables, calculate the coefficient of partial determination given that $X_1$ and $X_2$ are included in the model: land area($X_3$), percent of population 65 or older($X_4$), and the number of hospital beds($X_5$).
+
+The coefficient of partial determination for X3 (land area) given
+that X1 and X2 are included in the model is found by (SSE(X1,X2))-SSE(X1,X2,X3))/SSE(X1,X2). For X4 (percent of population 65 or older) given
+that X1 and X2 are included in the model and X5 (number of hospital beds) given
+that X1 and X2 are included in the model: the same equation is used but the X3 is swapped for whichever coefficient of partial determination you are trying to find. 
+
+The coefficient of partial determination for X3 (given that X1 and X2 are included in the model) is 0.02882495. The coefficient of partial determination for X4 (given that X1 and X2 are included in the model) is 0.003842367. The coefficient of partial determination for X5 (given that X1 and X2 are included in the model) is 0.5538182.
+
+
+(b) On the basis of the results in part a, which of the four additional predictor variables is best? Is the extra sum of squares associated with this variable larger than those for the other three variables?
+
+On the basis of the results in part a, X5 (number of hospital beds) is the best  additional predictor variable. It is the best because it’s coefficient of partial determination is the largest, meaning when X5 is added to the regression model, the error sum of squares SSE(X1,X2) is reduced by a larger percentage (55.4%) than it would have been with X3 or X4. The extra sum of squares of X5 is 78070132, which is larger than the extra sum of squares of X3 (4063370) and X4 (541647.3) which makes sense since its a bigger percentage.
+
+(c) Using the $F^s$ test statistic, test whether or not the variable determined to be best in part b is helpful in the regression model when $X_1$ and $X_2$ are included in the model. Use $\alpha = 0.01$. State the alternatives, decision rule, and conclusion. Would the $F^*$ test statistics for the other three potential predictor variables be as large as the one here?
+
+The null hypothesis and alternative are $H_0: B_5 = 0$ and $H_A: B_5 =/= 0$. The decision rule is that if the F-value is greater than the critical value, reject the null hypothesis. The F value is 541.1801 and is found by ((SSE(X1,X2))-SSE(X1,X2,X5)))/(SSE(X1,X2,X5)/(n-p)).. The critical value is found by qf(.99,1,436) and is 6.693358.
+
+Since the F- value is greater than the critical value (541.1801>6.693358) we are able to reject the null hypothesis and conclude that variable X5 is helpful in the regression model when XI and X2 are included in the model. The F-values for X3 and X4 are 12.94069 and 1.681734, which are both smaller than the F-value for X5, which makes sense, since both X3 and X4 don’t have too much affect on reducing the error sum of squares SSE(X1,X2) when added to the regression model.
+
+
+(d) Compute three additional coefficients of partial determination. Which pair of predictors is relatively more important than other pairs? Use the F test to find out whether adding the best pair to the model is helpful given that X1,X2 are already included.
+
+The coefficient of partial determination for pair X3,X4 (given that X1 and X2 are included in the model) is 0.03314181. The coefficient of partial determination for pair X3,X5 (given that X1 and X2 are included in the model) is 0.5558232. The coefficient of partial determination for pair X4,X5 (given that X1 and X2 are included in the model) is 0.5642756.
+
+The pair X4,X5 is relatively more important since it has the highest coefficient of partial determination.
+
+The null hypothesis and alternative are $H_0: B_4 = B_5 = 0$ and $H_A: not all B_k (k = 1, ... , p - 1) equal zero$. The decision rule is that if the F-value is greater than the critical value, reject the null hypothesis. The F value is 140.8344 and is found by (((SSE(X1,X2))-SSE(X1,X2,X4,X5)))/(p-1))/(SSE(X1,X2,X4,X5)/(n-p)).. No alpha was given, so I found the critical values for alpha = .01 and alpha = .05. The critical value is found by qf(.99,1,435) and is 6.693493. The critical value is found by qf(.95,1,435) and is 3.862925.
+
+
+Since the F- value is greater than the critical value (140.8344>both 6.693493 and 3.862925) we are able to reject the null hypothesis and conclude that variable pair  X4,X5 is helpful in the regression model when XI and X2 are included in the model.
+
+# Part III: Discussion
+For 6.28, part a, we prepared a stem-and-leaf plot of the predictor variables for both proposed models. From a practical standpoint, this plot is used internationally for things such as transportation timetables in places like Russia where the hours along the stem and the minutes as the leaves. In part b, obtaining a scatter plot matrix is highly useful. We use them to observe the relations between the variables. From a practical standpoint, when looking at covid rates and wearing a mask, for instance, a scatter plot matrix can be used to show us if there is a weak or strong relationship between the two. For part e, we obtain the residuals. Residuals are useful from a practical standpoint so we can use them to determine how close our model is to something in the real world. Along with the predicted model, we use residuals to make educated estimations. For 7.37, part a, we compute the coefficient of partial determination which from a practical standpoint, shows us how much variability of one variable that can be caused by its relationship with another variable. For part c, we calculate the. F statistic to see whether the groups of mean are equal, known to be a very flexible test. Some suggestions I have to improve the linear models would be to first see if there are to valid amount of variables being used. Too many independent variables wouldn’t make it more accurate if it isn’t being used so the simpler, the better. I would then see and understand the relationship between by dependent variable and all the independent variables, and see if they have a linear trend or not. 
+
+# Appendix
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```

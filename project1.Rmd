@@ -1,0 +1,344 @@
+---
+title: "Project 1"
+author: "Chris Bui, Ilham Tokhi, Air Singh" 
+output: pdf_document
+---
+
+```{r, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(
+	error = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	echo = FALSE, # hide all R codes!!
+	fig.width=5, fig.height=4,#set figure size
+	fig.align='center',#center plot
+	options(knitr.kable.NA = ''), #do not print NA in knitr table
+	tidy = FALSE #add line breaks in R codes
+)
+```
+
+# Introduction
+......
+In this project, we will go through five parts solving different problems. We will explore how these variables relate to each other through analysis. Our project deals with a given a data set "CDI", that holds the variables/values we will further utilize. In Part 1, we will see the fitted regression model. Here we use variable 8 for the number of active physicians, denoted by "Y" and for our predictor variables, we will use variable 5 for the total population, variable 9 for the number of hospital beds, and variable 16 for total personal income. Each project in part 1 consists of 3 parts. Part 2 covers the measuring of linear associations. Here we examine variables 17 for geographic regions in our "CDI" data set, variable 15 for per captia income, and variable 12 for the percent of people who have at least a bachelor's degree. In Part 3, we will find inferences about regression parameters. Here, we will use the analysis of variance or ANOVA for every regression model. We will also compute a F-test for the regression models. In Part 4, we present the regression diagnostics. In the last part, Part 5, we have a discussion that follows our results and summarizes our interpretation of each section in Project 1. The main objective of this project is to cover the topics listed above and create a user-friendly explanation of our results.  The main tools we have used in this project is R-Studio. Here we complied our computations and listed them as shown below. 
+......
+
+# Part I: Fitting Regression Models
+
+## Project 1.43
+(a) Regress the number of active physicians in turn on each of the three predictor variables. State the estimated regression functions.
+
+```{r, results='hide'}
+# Read CDI Data
+data1 = read.table("/Users/ankitasingh/Documents/STA-108-projects/CDI.txt")
+Y = data1[,8]
+X1 = data1[,5]
+X2 = data1[,9]
+X3 = data1[,16]
+
+# Get least square estimates:
+fit1=lm(Y~X1)
+b0hat1 = fit1$coefficients[[1]] # first element in coefficients is intercept
+b1hat1 = fit1$coefficients[[2]] # second element in coefficients is slope
+n = length(X1)
+fit2=lm(Y~X2)
+b0hat2 = fit2$coefficients[[1]]
+b1hat2 = fit2$coefficients[[2]]
+n = length(X2)
+fit3=lm(Y~X3)
+b0hat3 = fit3$coefficients[[1]]
+b1hat3 = fit3$coefficients[[2]]
+n = length(X3)
+
+b0hat1
+b0hat2
+b0hat3
+b1hat1
+b1hat2
+b1hat3
+```
+
+Let $Y$ be the number of active physicians in a CDI, $X_1$ be the total population, $X_2$ be the number of hospital beds, and $X_3$ be the total personal income. The estimated regression function is $$\hat{Y} = -110.634 + \ 0.027 X_1$$. 
+
+The estimated regression function is $$\hat{Y} = -95.932 + \ 0.743 X_2$$. 
+
+The estimated regression function is $$\hat{Y} = -48.394 + \ 0.131 X_3$$.
+
+(b) Plot the three estimated regression functions and data on separate graphs. Does a linear regression relation appear to provide a good fit for each of the three predictor variables?
+
+```{r}
+#Fitted line
+plot(X1,Y,ylim=c(1000, 9000),xlab = "Total Population",ylab = "Number of Active Physicians in a CDI")
+abline(fit1, col="red")
+```
+
+```{r}
+#Fitted line
+plot(X2,Y,ylim=c(1000,9000),xlab = "Number of Hospital Beds",ylab = "Number of Active Physicians in a CDI")
+abline(fit2, col="red")
+```
+
+```{r}
+#Fitted line
+plot(X3,Y,ylim=c(1000,9000),xlab = "Total Personal Income",ylab = "Number of Active Physicians in a CDI")
+abline(fit3, col="red")
+```
+
+Comments on the Plot: A linear regression relation does appear to provide a good fit for the predictor variables of the Total Population ($X_1$) and of Number of Hospital Beds ($X_2$). A linear regression relation does not appear to provide a good fit for the Total Personal Income ($X_3$).
+
+(c) Calculate MSE for each of the three predictor variables. Which predictor variable leads to the smallest variability around the fitted regression line?
+
+```{r, results='hide'}
+#MSE
+mse1= summary(fit1)$sigma^2
+mse2= summary(fit2)$sigma^2
+mse3= summary(fit3)$sigma^2
+
+mse1
+mse2
+mse3
+```
+
+Predictor Variable $X_2$ leads to the smallest variability around the fitted regression line because the smallest mse has the smallest variability.
+
+## Projects 1.44 
+(a) For each geographic region, regress per capita income in a CDI($Y$) against the percentage of individuals in a county having at least a bachelor's degree ($X$). Assume that first-order regression model is appropriate for each region. State the estimated regression functions.
+
+```{r, results='hide'}
+# Read CDI Data
+data2 = read.table("/Users/ankitasingh/Documents/STA-108-projects/CDI.txt")
+regions = data2[,17]
+
+NE = data2[regions==1,]
+fitRegions1 = lm(V15~V12, data = NE)
+fitRegions2 = lm(V15~V12, data = data2[regions==2,])
+fitRegions3 = lm(V15~V12, data = data2[regions==3,])
+fitRegions4 = lm(V15~V12, data = data2[regions==4,])
+
+fitRegions1
+fitRegions2
+fitRegions3
+fitRegions4
+```
+
+For each geographic region, let $Y$ be the per capita income in a CDI and $X$ be the percentage of individuals in a county having at least a bachelor's degree. The estimated regression function for Region 1 is $$\hat{Y} = 9223.8 + \ 522.2 X$$. 
+
+The estimated regression function for Region 2 is $$\hat{Y} = 13581.4 + \ 238.7 X$$.
+
+The estimated regression function for Region 3 is $$\hat{Y} = 10529.8 + \ 330.6 X$$.
+
+The estimated regression function for Region 4 is $$\hat{Y} = 8615.1 + \ 440.3 X$$.
+
+(b) Are the estimated regression functions similar for the four regions? Discuss.
+
+The estimated regression functions are all similar for the four regions. They all share a steep positive regression line.
+
+(c) Calculate MSE for each region. Is the variability around the fitted regression line approximately the same for the four regions? Discuss.
+
+```{r, results='hide'}
+#MSE
+mseRegions1= summary(fitRegions1)$sigma^2
+mseRegions2= summary(fitRegions2)$sigma^2
+mseRegions3= summary(fitRegions3)$sigma^2
+mseRegions4= summary(fitRegions4)$sigma^2
+
+mseRegions1
+mseRegions2
+mseRegions3
+mseRegions4
+```
+
+The variability around the fitted regression line is approximately not the same for the four regions. We can see that Region 1 and Region 3 are close, by Region 2 and Region 4 are not.
+
+# Part II: Measuring linear associations
+
+## Project 2.62
+Using $R^2$ as criterion, we can find the predictor variables that account for the largest reduction in variability in the number of active physicians. 
+
+``` {r, results='hide'}
+CDI = read.table("~/Downloads/college/2020-2021-classes/STA108/datasets/CDI.txt")
+
+CDI.lm = lm(V4 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V4
+
+CDI.lm = lm(V5 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V5
+
+CDI.lm = lm(V6 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V6
+
+CDI.lm = lm(V7 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V7
+
+CDI.lm = lm(V9 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V9
+
+CDI.lm = lm(V10 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V10
+
+CDI.lm = lm(V11 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V11
+
+CDI.lm = lm(V12 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V12
+
+CDI.lm = lm(V13 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V13
+
+CDI.lm = lm(V14 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V14
+
+CDI.lm = lm(V15 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V15
+
+CDI.lm = lm(V16 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V16
+
+CDI.lm = lm(V17 ~ V8, data=CDI)
+summary(CDI.lm)$r.squared  #get coefficient of determination for V17
+
+```
+From running code, we can find:
+
+V4 ~ V8 -> 0.006095652\
+V5 ~ V8 ->  0.8840674\
+V6 ~ V8 -> 0.01432791\
+V7 ~ V8 -> 9.788323e-06\
+V9 ~ V8 -> 0.9033826\
+V10 ~ V8 -> 0.6731538\
+V11 ~ V8 -> 1.804622e-05\
+V12 ~ V8 -> 0.05605789\
+V13 ~ V8 -> 0.004113459\
+V14 ~ V8 -> 0.002551878\
+V15 ~ V8 -> 0.0999411\
+V16 ~ V8 -> 0.8989137\
+V17 ~ V8 -> 0.0006074288
+
+The highest factors are the number of hospital beds, total personal income and total population.
+
+# Part III: Inference about regression parameters
+
+## Project 2.63
+```{r, results='hide'}
+Data = CDI 
+Y = Data$V8 
+#X1 = total population 
+#X2 = number of hospital beds 
+#X3 = total personal income 
+X1 = Data$V5 
+X2 = Data$V9 
+X3 = Data$V16 
+#Y1 = Model when predictor variable is total population 
+#Y2 = Model when predictor variable is number of hospital beds 
+#Y3 = Model when predictor variable is total personal income 
+Y1 = lm(Y~X1) 
+Y2 = lm(Y~X2) 
+Y3 = lm(Y~X3) 
+confint(Y1,level=.90) 
+confint(Y2,level=.90) 
+confint(Y3,level=.90) 
+anova(Y1) 
+anova(Y2) 
+anova(Y3) 
+```
+
+The interval estimate for region 1 is 460.5177(lower bound) and 583.80(upper bound). There is a 90% chance $B_1$ is between 460.5177 and 583.80
+
+The interval estimate for region 2 is 193.4858(lower bound) and 283.853(upper bound). There is a 90% chance $B_1$ is between 193.4858 and 283.853
+
+The interval estimate for region 3 is 285.7076(lower bound) and 375.5158(upper bound). There is a 90% chance $B_1$ is between 285.7076 and 375.5158
+
+The interval estimate for region 4 is 364.7585(lower bound) and 515.8729(upper bound). There is a 90% chance $B_1$ is between 364.7585 and 515.8729
+
+The slopes for these different regions appear to have similar slopes, they are all positive. Regions 1 and 4 are the two steepest and regions 2 and 3 are slightly shallower.
+
+
+$Df: X_1 = 1, redidual = 438$\
+$Sum Sq: X_1 = 1243181164, residual = 163025135$\
+$Mean Sq: X_1 = 1243181164, residual = 372204$\
+$F value: 3340.1$
+
+$H_0: B_1 = 0$ and $H_A: B_1 =/= 0$. The F value is 3340.1 and is found by $MSR/MSE =  1243181164/372204 = 3340.1$. Since the F- value is so high we are able to reject the null hypothesis and conclude that the relationship between total population $X_1$ and number of  active physicians $Y$ is linear.
+
+
+$Df: X_2 = 1, residual = 438$\
+$Sum Sq: X_2 =  1270342254, residual = 135864045$\
+$Mean Sq: X_2 = 1270342254, residual = 310192$\
+$F value: 4095.3$
+
+
+$H_0: B_1 = 0$ and $H_A: B_1 =/= 0$. The F value is 4095.3 and is found by $MSR/MSE =  1270342254/310192 = 4095.3$. Since the F-value is so high we are able to reject the null  hypothesis and conclude that the relationship between number of hospital beds $X_2$ and  number of active physicians $Y$ is linear. 
+
+
+$Df: X_3 = 1, residuals = 438$\
+$Sum Sq: X_3 = 1264058045, residual = 142148254$\
+$Mean Sq: X_3 = 1264058045, residual = 324539$\
+$F value:3894.9$
+
+
+$H_0: B_1 = 0$ and $H_A: B_1 =/= 0$. The F value is 3894.9 and is found by $MSR/MSE =  1264058045/324539 = 3894.9$. Since the F-value is so high we are able to reject the null  hypothesis and conclude that the relationship between total personal income $X_3$ and number  of active physicians $Y$ is linear.
+
+
+# Part IV: Regression diagnostics
+
+## Project 3.25
+
+For each of the three fitted regression models, obtain the residual and prepare a residual plot against $X$ and a normal probability plot.
+
+```{r}
+#read data
+CDI = read.table("/Users/ankitasingh/Documents/STA-108-projects/CDI.txt")
+
+#plot the residual against x
+fit = lm(CDI$V8~CDI$V5, data=CDI)
+residuals = fit$residual #or Y-yhat
+plot(x=CDI$V5, y=residuals, xlab="total population", ylab="residuals") 
+abline(h=0, col="red")
+
+#plot the normal probability plot
+qqnorm(residuals)
+qqline(residuals, col="red")
+```
+
+```{r}
+#read data
+CDI = read.table("/Users/ankitasingh/Documents/STA-108-projects/CDI.txt")
+
+#plot the residual against x
+fit = lm(CDI$V8~CDI$V9, data=CDI)
+residuals = fit$residual #or Y-yhat
+plot(x=CDI$V9, y=residuals, xlab="number of hospital beds", ylab="residuals") 
+abline(h=0, col="red")
+
+#plot the normal probability plot
+qqnorm(residuals)
+qqline(residuals, col="red")
+```
+
+```{r}
+#read data
+CDI = read.table("/Users/ankitasingh/Documents/STA-108-projects/CDI.txt")
+
+#plot the residual against x
+fit = lm(CDI$V8~CDI$V16, data=CDI)
+residuals = fit$residual #or Y-yhat
+plot(x=CDI$V16, y=residuals, xlab="total personal income", ylab="residuals") 
+abline(h=0, col="red")
+
+#plot the normal probability plot
+qqnorm(residuals)
+qqline(residuals, col="red")
+```
+
+Summarize your conclusions. Is linear regression model more appropriate in once case than in the others?
+
+The linear regression model is appropriate in all these cases.
+
+# Part V: Discussion
+In Project 1.43 we are given a set of data. With this data, we look at a number of active physicians denoted by “Y” and its relation to the the total population, number of hospital beds, as well as total personal income. These 3 are denoted by “X”, also known as a predictor variable. We create a function based on a linear regression model that is listed in our textbook. In part b of this problem, we plot the three functions we have created on separate graphs. We then observe whether or not there is a good fit in terms of a linear regression relation. Basically, we see how close the data points are relative to the function/line we created. In part c, we compute a function known as the “mean squared error”. This function measures the average of the squares of the errors. From the results of this computation, we examine the smallest value of the three MSE. This value tells us which of the predictor variables has the smallest variability around the fitted regression line we found earlier
+In Project 1.44, we continue using the data in the first project. Here we examine the per capita income denoted by “Y” against the amount of people in a county who have at least a bachelor’s degree, denoted by “X”. We take these values based on the four geographic regions listed in the data. Here we create functions based on a “first order regression model” that is listed in our textbook. In part b, we examine whether or not the functions are similar in the four regions. Lastly, in part c we computed the MSE or “mean squared error” for each of the four regions. We then look at our computations and see if the variability is the same for the four regions. 
+
+In part 3 we get an interval estimate of the parameter $B_1$ at 90 percent confidence for each region found in problem 1.44. This means that we are getting a range of the slope of each region that we are 90% sure that the real slope lies in. We then do analysis of the variance through anova of the three predator variables (total population, number of hospital beds, total personal income) and on the dependent variable (number of active physicians). We do this to establish whether there is a linear relationship between the two variables or not.
+
+# Appendix
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
